@@ -1,0 +1,14 @@
+# Cloudflare Configuration Example
+# Copy this file to terraform.tfvars and fill in your actual values
+
+# Your Cloudflare Account ID
+# Find this in your Cloudflare dashboard: https://dash.cloudflare.com/
+cloudflare_account_id = "your-cloudflare-account-id-here"
+
+# Your Cloudflare API Token
+# Create this token at: https://dash.cloudflare.com/profile/api-tokens
+# Required permissions:
+#   - Account.R2 Read/Write
+#   - Account.Cloudflare Queues Read/Write
+#   - Account.Workers Scripts Read/Write
+cloudflare_api_token = "your-cloudflare-api-token-here"
