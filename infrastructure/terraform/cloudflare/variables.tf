@@ -8,3 +8,14 @@ variable "cloudflare_account_id" {
   description = "Cloudflare Account ID"
   type        = string
 }
+
+variable "webhook_url" {
+  description = "Webhook URL for receiving R2 events"
+  type        = string
+}
+
+variable "webhook_secret" {
+  description = "Secret token for webhook authentication"
+  type        = string
+  sensitive   = true
+}

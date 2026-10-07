@@ -12,3 +12,11 @@ cloudflare_account_id = "your-cloudflare-account-id-here"
 #   - Account.Cloudflare Queues Read/Write
 #   - Account.Workers Scripts Read/Write
 cloudflare_api_token = "your-cloudflare-api-token-here"
+
+# Webhook Configuration
+# URL where R2 events will be sent
+webhook_url = "https://your-webhook-endpoint.com/webhook"
+
+# Secret token for webhook authentication
+# Used in the Webhook-Secret header
+webhook_secret = "your-webhook-secret-token-here"

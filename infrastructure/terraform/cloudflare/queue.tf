@@ -1,8 +1,7 @@
 # Create Cloudflare queue
 resource "cloudflare_queue" "r2_event_queue" {
   account_id   = var.cloudflare_account_id
-  queue_name   = "r2-event-queue"
-
+  queue_name   = "r2-event-queue-tf" 
 }
 
 # Configure R2 Event Notification to Queue
