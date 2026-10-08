@@ -10,13 +10,15 @@ import (
 
 	"server/config"
 	"server/database"
-	"server/internal/r2"
+	"server/internal/container"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 )
+
+////////////////////////////////////////////////////////////////
 
 func main() {
 	// ตั้งค่า log prefix
@@ -45,26 +47,10 @@ func main() {
 	}
 	log.Println("Database migrations completed")
 
-	// Initialize R2 Client
-	r2Cfg := r2.R2Config{
-		AccountID:       cfg.R2.AccountID,
-		AccessKeyID:     cfg.R2.AccessKeyID,
-		SecretAccessKey: cfg.R2.SecretAccessKey,
-		BucketName:      cfg.R2.BucketName,
-		Endpoint:        cfg.R2.Endpoint,
-	}
-
-	// Validate R2 config
-	if err := r2.ValidateConfig(r2Cfg); err != nil {
-		log.Fatalf("❌R2 configuration validation failed: %v", err)
-	}
-
-	// Create R2 client
-	r2Client, err := r2.NewR2Client(r2Cfg)
-	if err != nil {
-		log.Fatalf("❌Failed to create R2 client: %v", err)
-	}
-	log.Println("R2 client initialized successfully")
+	// Initialize Dependency Container
+	container := container.NewContainer(db, cfg)
+	defer container.Close()
+	log.Println("Dependency container initialized")
 
 	// สร้าง Fiber app
 	app := fiber.New(fiber.Config{
@@ -90,7 +76,7 @@ func main() {
 	}))
 
 	// Routes
-	setupRoutes(app, db, r2Client)
+	setupRoutes(app, container)
 
 	// Graceful shutdown
 	go func() {
@@ -117,48 +103,48 @@ func main() {
 	}
 
 	// Close database connection
-	if db != nil {
-		sqlDB, _ := db.DB()
-		if sqlDB != nil {
-			sqlDB.Close()
-		}
-	}
-
 	log.Println("Server stopped gracefully")
 }
 
-func setupRoutes(app *fiber.App, db interface{}, r2Client interface{}) {
+////////////////////////////////////////////////////////////////
+
+func setupRoutes(app *fiber.App, c *container.Container) {
 	// Health check
-	app.Get("/", func(c fiber.Ctx) error {
-		return c.JSON(fiber.Map{
+	app.Get("/", func(ctx fiber.Ctx) error {
+		return ctx.JSON(fiber.Map{
 			"message": "R2 Event-Driven Pipeline API",
 			"status":  "running",
 			"version": "1.0.0",
 		})
 	})
 
-	app.Get("/health", func(c fiber.Ctx) error {
-		return c.JSON(fiber.Map{
+	app.Get("/health", func(ctx fiber.Ctx) error {
+		return ctx.JSON(fiber.Map{
 			"status": "healthy",
 			"time":   time.Now().Format(time.RFC3339),
 		})
 	})
 
 	// API Routes
-	api := app.Group("/api/v1")
+	api := app.Group("/api")
 
-	// TODO: Add your routes here
-	_ = api
-	_ = r2Client
+	// Register R2 routes
+	c.R2Handler.RegisterRoutes(api)
+
+	// TODO: Register modules อื่นๆ
+	// c.UserHandler.RegisterRoutes(api)
+	// c.AuthHandler.RegisterRoutes(api)
 
 	// 404 Handler
-	app.Use(func(c fiber.Ctx) error {
-		return c.Status(404).JSON(fiber.Map{
+	app.Use(func(ctx fiber.Ctx) error {
+		return ctx.Status(404).JSON(fiber.Map{
 			"error": "Route not found",
-			"path":  c.Path(),
+			"path":  ctx.Path(),
 		})
 	})
 }
+
+////////////////////////////////////////////////////////////////
 
 func customErrorHandler(c fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
