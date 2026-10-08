@@ -43,6 +43,19 @@ node_modules/
 __pycache__/
 *.pyc
 
+# Go
+server/bin/
+server/dist/
+server/.air
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+*.test
+*.out
+
 # Backup files
 *.bak
 *.backup
