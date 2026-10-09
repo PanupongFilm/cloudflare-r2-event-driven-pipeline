@@ -20,3 +20,12 @@ webhook_url = "https://your-webhook-endpoint.com/webhook"
 # Secret token for webhook authentication
 # Used in the Webhook-Secret header
 webhook_secret = "your-webhook-secret-token-here"
+
+# R2 Bucket Configuration
+# Name of the R2 bucket to create
+bucket_name = "film-mini-project"
+
+# Production Domain Configuration (optional)
+# Add your custom domain for CORS access
+# Leave empty to allow only localhost origins
+app_domain = "cloudflare-test.panupong-suttikasem.xyz"
