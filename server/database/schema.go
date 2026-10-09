@@ -47,12 +47,12 @@ const (
 type UploadLog struct {
 	ID          string         `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserID      *string        `gorm:"type:uuid;index" json:"user_id,omitempty"` // Foreign Key (nullable)
-	AccountID   string         `gorm:"type:varchar(255);not null;index" json:"account_id"`
+	AccountID   string         `gorm:"type:varchar(255);not null;index;uniqueIndex:idx_upload_unique" json:"account_id"`
 	Action      ActionType     `gorm:"type:varchar(50);not null;index" json:"action"`
 	BucketName  string         `gorm:"type:varchar(255);not null;index" json:"bucket_name"`
-	ObjectKey   string         `gorm:"type:varchar(1000);not null;index" json:"object_key"`
+	ObjectKey   string         `gorm:"type:varchar(1000);not null;index;uniqueIndex:idx_upload_unique" json:"object_key"`
 	ObjectSize  int64          `gorm:"type:bigint;not null" json:"object_size"`
-	ETag        string         `gorm:"type:varchar(255);not null" json:"etag"`
+	ETag        string         `gorm:"type:varchar(255);not null;uniqueIndex:idx_upload_unique" json:"etag"`
 	EventTime   time.Time      `gorm:"not null;index" json:"event_time"`
 	Status      StatusType     `gorm:"type:varchar(50);default:'pending';index" json:"status"`
 	ProcessedAt *time.Time     `json:"processed_at,omitempty"`
