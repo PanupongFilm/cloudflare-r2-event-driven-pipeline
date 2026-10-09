@@ -76,46 +76,15 @@ func (h *Handler) GetAllUploadLog(c fiber.Ctx) error {
 
 
 func (h *Handler) GenerateUploadURL(c fiber.Ctx) error {
-	// Parse request body
-	type PresignUploadRequest struct {
-		ObjectKey string `json:"object_key" validate:"required"`
-		ExpiresIn int    `json:"expires_in"` 
-	}
-
-	var req PresignUploadRequest
-	if err := c.Bind().JSON(&req); err != nil {
-		return _package.SendJSON(
-			c,
-			fiber.StatusBadRequest,
-			_package.ErrorResponse(
-				"Invalid request body",
-				"VALIDATION_ERROR",
-				err.Error(),
-			),
-		)
-	}
-
-	// Validate object_key
-	if req.ObjectKey == "" {
-		return _package.SendJSON(
-			c,
-			fiber.StatusBadRequest,
-			_package.ErrorResponse(
-				"object_key is required",
-				"VALIDATION_ERROR",
-				"object_key cannot be empty",
-			),
-		)
-	}
-
-
-	expiresIn := time.Duration(req.ExpiresIn) * time.Second
-	if req.ExpiresIn <= 0 {
-		expiresIn = 15 * time.Minute 
-	}
+	
+	// Generate unique object_key automatically
+	objectKey := generateObjectKey()
+	
+	// Set default expires_in to 5 minutes
+	expiresIn := 5 * time.Minute
 
 	// Generate presigned URL
-	presignedURL, err := h.service.GeneratePresignedUploadURL(c.Context(), req.ObjectKey, expiresIn)
+	presignedURL, err := h.service.GeneratePresignedUploadURL(c.Context(), objectKey, expiresIn)
 	if err != nil {
 		return _package.SendJSON(
 			c,
@@ -130,10 +99,13 @@ func (h *Handler) GenerateUploadURL(c fiber.Ctx) error {
 
 	// Response
 	responseData := map[string]interface{}{
-		"presigned_url": presignedURL,
-		"object_key":    req.ObjectKey,
-		"expires_in":    int(expiresIn.Seconds()),
-		"method":        "PUT",
+		"presigned_url":       presignedURL,
+		"object_key":          objectKey,
+		"expires_in":          int(expiresIn.Seconds()),
+		"method":              "PUT",
+		"max_file_size":       5 * 1024 * 1024 * 1024, // 5GB in bytes
+		"allowed_type":        "application/x-tar",
+		"allowed_extensions":  []string{".tar"},
 	}
 
 	return _package.SendJSON(
@@ -151,7 +123,6 @@ func (h *Handler) GenerateDownloadURL(c fiber.Ctx) error {
 
 	type PresignDownloadRequest struct {
 		ObjectKey string `json:"object_key" validate:"required"`
-		ExpiresIn int    `json:"expires_in"` 
 	}
 
 	var req PresignDownloadRequest
@@ -179,11 +150,8 @@ func (h *Handler) GenerateDownloadURL(c fiber.Ctx) error {
 		)
 	}
 
-	
-	expiresIn := time.Duration(req.ExpiresIn) * time.Second
-	if req.ExpiresIn <= 0 {
-		expiresIn = 15 * time.Minute 
-	}
+	// Set default expires_in to 5 minutes (same as upload)
+	expiresIn := 5 * time.Minute
 
 	presignedURL, err := h.service.GeneratePresignedDownloadURL(c.Context(), req.ObjectKey, expiresIn)
 	if err != nil {
@@ -220,10 +188,7 @@ func (h *Handler) GenerateDownloadURL(c fiber.Ctx) error {
 func (h *Handler) RegisterRoutes(router fiber.Router) {
 
 	router.Get("/r2", h.GetAllUploadLog)
-	router.Post("/r2/presigned-upload",
-		middleware.ReqEmptyCheck,  
-		h.GenerateUploadURL,
-	)
+	router.Post("/r2/presigned-upload", h.GenerateUploadURL)
 	router.Post("/r2/presigned-download",
 		middleware.ReqEmptyCheck, 
 		h.GenerateDownloadURL,
@@ -240,4 +205,10 @@ func parseIntOrDefault(value string, defaultValue int) int {
 		return defaultValue
 	}
 	return intValue
+}
+
+// generateObjectKey generates a unique object key using timestamp and random string
+func generateObjectKey() string {
+	timestamp := time.Now().UnixNano()
+	return strconv.FormatInt(timestamp, 10)
 }

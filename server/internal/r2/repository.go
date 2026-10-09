@@ -8,7 +8,7 @@ import (
 
 type Repository interface {
 	GetAllUploadLog(ctx context.Context, limit, offset int) ([]database.UploadLog, int64, error)
-	
+	CreateUploadLog(ctx context.Context, data CreateUploadLogRequest) (*database.UploadLog, error)
 }
 
 
@@ -46,4 +46,27 @@ func (r *repository) GetAllUploadLog(ctx context.Context, limit, offset int) ([]
 	}
 
 	return logs, totalCount, nil
+}
+
+
+func (r *repository) CreateUploadLog(ctx context.Context, data CreateUploadLogRequest) (*database.UploadLog, error) {
+	
+	// Convert DTO to DB Model
+	log := &database.UploadLog{
+		UserID:     data.UserID,
+		AccountID:  data.AccountID,
+		Action:     database.ActionType(data.Action),
+		BucketName: data.BucketName,
+		ObjectKey:  data.ObjectKey,
+		ObjectSize: data.ObjectSize,
+		ETag:       data.ETag,
+		EventTime:  data.EventTime,
+		Status:     database.StatusPending, 
+	}
+
+	if err := r.db.WithContext(ctx).Create(log).Error; err != nil {
+		return nil, err
+	}
+
+	return log, nil
 }

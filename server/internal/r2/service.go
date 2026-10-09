@@ -59,13 +59,15 @@ func (s *service) GeneratePresignedUploadURL(ctx context.Context, objectKey stri
 	}
 
 	if expiresIn <= 0 {
-		expiresIn = 15 * time.Minute 
+		expiresIn = 5 * time.Minute 
 	}
 
-	// สร้าง PutObject request
+	contentType := "application/x-tar" // .tar only
+
 	putObjectInput := &s3.PutObjectInput{
-		Bucket: &s.bucketName,
-		Key:    &objectKey,
+		Bucket:      &s.bucketName,
+		Key:         &objectKey,
+		ContentType: &contentType,
 	}
 
 	// Generate presigned URL
@@ -76,6 +78,8 @@ func (s *service) GeneratePresignedUploadURL(ctx context.Context, objectKey stri
 	if err != nil {
 		return "", fmt.Errorf("failed to generate presigned upload URL: %w", err)
 	}
+
+	
 
 	return presignResult.URL, nil
 }

@@ -11,7 +11,7 @@ type User struct {
 	ID        string         `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserName  string         `gorm:"type:varchar(100);uniqueIndex;not null" json:"user_name"`
 	Email     string         `gorm:"type:varchar(255);uniqueIndex" json:"email,omitempty"`
-	Password  string         `gorm:"type:varchar(500);not null" json:"-"` // ไม่ส่งใน JSON
+	Password  string         `gorm:"type:varchar(500);not null" json:"-"` // Not Send in JSON
 	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
