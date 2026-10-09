@@ -12,6 +12,7 @@ type Config struct {
 	Server   ServerConfig
 	R2       R2Config
 	Database DatabaseConfig
+	Webhook  WebhookConfig
 }
 
 type ServerConfig struct {
@@ -35,6 +36,10 @@ type DatabaseConfig struct {
 	Password string
 	DBName   string
 	SSLMode  string
+}
+
+type WebhookConfig struct {
+	WebhookSecret string
 }
 
 // LoadConfig from environment variable
@@ -66,6 +71,10 @@ func LoadConfig() (*Config, error) {
 			Password: getEnv("DB_PASSWORD", ""),
 			DBName:   getEnv("DB_NAME", "r2_pipeline"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+		},
+
+		Webhook: WebhookConfig{
+			WebhookSecret: mustGetEnv("WEBHOOK_SECRET"),
 		},
 	}
 

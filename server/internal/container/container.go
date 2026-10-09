@@ -4,6 +4,7 @@ import (
 	"log"
 	"server/config"
 	"server/internal/r2"
+	"server/internal/webhook"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gorm.io/gorm"
@@ -19,6 +20,9 @@ type Container struct {
 	R2Service       r2.Service
 	R2Handler       *r2.Handler
 
+	// Webhook Module
+	WebhookService webhook.Service
+	WebhookHandler *webhook.Handler
 }
 
 
@@ -54,7 +58,9 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 	r2Service := r2.NewService(r2Repository, r2Client, r2PresignClient, cfg.R2.BucketName)
 	r2Handler := r2.NewHandler(r2Service)
 
-
+	// Initialize Webhook module
+	webhookService := webhook.NewService(r2Repository)
+	webhookHandler := webhook.NewHandler(webhookService, cfg.Webhook.WebhookSecret)
 
 	return &Container{
 		DB: db,
@@ -65,6 +71,10 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 		R2Repository:    r2Repository,
 		R2Service:       r2Service,
 		R2Handler:       r2Handler,
+
+		// Webhook Module
+		WebhookService: webhookService,
+		WebhookHandler: webhookHandler,
 
 		// User Module
 		// UserRepository: userRepository,

@@ -130,10 +130,9 @@ func setupRoutes(app *fiber.App, c *container.Container) {
 
 	// Register R2 routes
 	c.R2Handler.RegisterRoutes(api)
-
-	// TODO: Register modules อื่นๆ
-	// c.UserHandler.RegisterRoutes(api)
-	// c.AuthHandler.RegisterRoutes(api)
+	
+	// Register Webhook routes
+	c.WebhookHandler.RegisterRoutes(api)
 
 	// 404 Handler
 	app.Use(func(ctx fiber.Ctx) error {
